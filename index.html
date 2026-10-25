@@ -1,1242 +1,748 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Haiti Trivia Battle</title>
-
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haiti Trivia Battle 🇭🇹</title>
+<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 <style>
-    * {
-        box-sizing: border-box;
-    }
-
-    body {
-        margin: 0;
-        min-height: 100vh;
-        font-family: Arial, sans-serif;
-        color: white;
-        text-align: center;
-        background: linear-gradient(135deg, #00209f, #d21034);
-        padding: 30px 15px;
-    }
-
-    .game {
-        width: 100%;
-        max-width: 600px;
-        margin: auto;
-        background: rgba(20, 0, 30, 0.92);
-        padding: 30px;
-        border-radius: 25px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-    }
-
-    h1 {
-        font-size: 34px;
-        margin-bottom: 10px;
-    }
-
-    h2 {
-        margin-top: 20px;
-    }
-
-    input {
-        width: 90%;
-        max-width: 400px;
-        padding: 15px;
-        margin: 8px;
-        border-radius: 10px;
-        border: none;
-        font-size: 18px;
-    }
-
-    button {
-        padding: 15px 25px;
-        margin: 8px;
-        border: none;
-        border-radius: 10px;
-        background: #ffd700;
-        color: black;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background: #ffeb70;
-    }
-
-    button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .room-code {
-        font-size: 36px;
-        font-weight: bold;
-        color: #ffd700;
-        letter-spacing: 3px;
-        margin: 15px;
-    }
-
-    .players {
-        background: rgba(255,255,255,0.1);
-        padding: 15px;
-        border-radius: 15px;
-        margin-top: 20px;
-    }
-
-    .player {
-        padding: 12px;
-        margin: 6px;
-        background: rgba(255,255,255,0.12);
-        border-radius: 10px;
-    }
-
-    .question {
-        font-size: 25px;
-        margin: 25px 0;
-    }
-
-    .answer {
-        display: block;
-        width: 100%;
-        margin: 12px 0;
-        background: #ffffff;
-        color: #111;
-    }
-
-    .answer:hover {
-        background: #eeeeee;
-    }
-
-    .correct {
-        background: #38d66b !important;
-        color: black !important;
-    }
-
-    .wrong {
-        background: #ff4d4d !important;
-        color: white !important;
-    }
-
-    .scoreboard {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        margin: 20px 0;
-    }
-
-    .score {
-        flex: 1;
-        background: rgba(255,255,255,0.12);
-        padding: 15px;
-        border-radius: 12px;
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    .status {
-        color: #ffd700;
-        font-weight: bold;
-        margin: 15px;
-    }
-
-    .small {
-        font-size: 14px;
-        opacity: 0.8;
-    }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 24px 12px;
+  font-family: Arial, sans-serif;
+  color: white;
+  text-align: center;
+  background: linear-gradient(125deg,#101b8e,#671678,#dc1244);
+}
+.panel {
+  max-width: 540px;
+  margin: 20px auto;
+  padding: 28px 22px;
+  background: #190522;
+  border-radius: 24px;
+  box-shadow: 0 12px 30px #0005;
+}
+h1 { font-size: clamp(27px,6vw,35px); }
+h2 { font-size: 24px; }
+p { line-height: 1.5; }
+button {
+  display: block;
+  margin: 14px auto;
+  padding: 15px 25px;
+  width: 100%;
+  background: #ffda00;
+  color: #15051b;
+  border: 0;
+  border-radius: 11px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+button:disabled { opacity: .5; cursor: not-allowed; }
+input {
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+  border: 0;
+  border-radius: 10px;
+}
+.hidden { display: none !important; }
+.room { font-size: 35px; color: #ffda00; font-weight: bold; }
+.scores, .players { display: flex; gap: 10px; margin: 20px 0; }
+.score, .player {
+  flex: 1;
+  min-width: 0;
+  background: #ffffff20;
+  padding: 15px 8px;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.answer {
+  background: white;
+  color: #15051b;
+  font-size: 16px;
+}
+.answer.selected { background: #ffda00; }
+.status { color: #ffda00; font-weight: bold; }
+.small { font-size: 13px; color: #ddd; }
+.secondary { background: #fff3; color: white; }
 </style>
 </head>
-
 <body>
 
-<div class="game">
+<main class="panel">
+  <h1>🇭🇹 Haiti Trivia Battle 🇭🇹</h1>
+  <p>Learn • Compete • Represent Haiti</p>
 
-    <h1>🇭🇹 Haiti Trivia Battle 🇭🇹</h1>
+  <section id="home">
+    <h2>Enter Your Name</h2>
+    <input id="name" placeholder="Player Name" maxlength="24">
+    <button id="create">Create Game</button>
+    <button id="join">Join Game</button>
+    <p class="small">Play with a friend on another device.</p>
+  </section>
 
-    <p>Learn • Compete • Represent Haiti</p>
-
-    <!-- HOME SCREEN -->
-    <div id="homeScreen">
-
-        <h2>Enter Your Name</h2>
-
-        <input
-            id="playerName"
-            type="text"
-            placeholder="Player Name"
-            maxlength="30"
-        >
-
-        <h2>Play With Friends</h2>
-
-        <button id="createButton">
-            Create Game
-        </button>
-
-        <button id="joinButton">
-            Join Game
-        </button>
-
-        <p class="small">
-            Create a room or join a friend's room.
-        </p>
-
+  <section id="lobby" class="hidden">
+    <h2>Your Game Room</h2>
+    <div class="room" id="roomCode"></div>
+    <p>Share this code with your friend.</p>
+    <div class="players">
+      <div class="player" id="p1">Player 1</div>
+      <div class="player" id="p2">Waiting for Player 2</div>
     </div>
+    <p class="status" id="lobbyStatus">Connecting...</p>
+    <button id="start" class="hidden">Start Game</button>
+    <button class="leave secondary">Leave Game</button>
+  </section>
 
-
-    <!-- ROOM SCREEN -->
-    <div id="roomScreen" class="hidden">
-
-        <h2>Your Game Room</h2>
-
-        <div id="roomCode" class="room-code"></div>
-
-        <p>
-            Share this code with your friend.
-        </p>
-
-        <div class="players">
-
-            <h2>Players</h2>
-
-            <div id="player1" class="player">
-                Player 1
-            </div>
-
-            <div id="player2" class="player">
-                Waiting for Player 2...
-            </div>
-
-        </div>
-
-        <div id="roomStatus" class="status">
-            Waiting for Player 2...
-        </div>
-
-        <button id="startButton" class="hidden">
-            ▶ Start Game
-        </button>
-
-        <button id="leaveButton">
-            Leave Game
-        </button>
-
+  <section id="game" class="hidden">
+    <div class="scores">
+      <div class="score">
+        <b id="scoreName1"></b>
+        <div id="score1">0</div>
+      </div>
+      <div class="score">
+        <b id="scoreName2"></b>
+        <div id="score2">0</div>
+      </div>
     </div>
+    <p id="progress"></p>
+    <h2 id="question"></h2>
+    <div id="answers"></div>
+    <p class="status" id="feedback"></p>
+  </section>
 
-
-    <!-- GAME SCREEN -->
-    <div id="gameScreen" class="hidden">
-
-        <div class="scoreboard">
-
-            <div class="score">
-                <strong id="scoreName1">
-                    Player 1
-                </strong>
-
-                <div id="score1">
-                    0
-                </div>
-            </div>
-
-            <div class="score">
-                <strong id="scoreName2">
-                    Player 2
-                </strong>
-
-                <div id="score2">
-                    0
-                </div>
-            </div>
-
-        </div>
-
-        <p id="questionNumber">
-            Question 1
-        </p>
-
-        <div id="questionText" class="question">
-            Question goes here
-        </div>
-
-        <div id="answers"></div>
-
-        <div id="answerStatus" class="status"></div>
-
-        <button id="nextButton" class="hidden">
-            Next Question
-        </button>
-
+  <section id="results" class="hidden">
+    <h2>🏆 Game Over! 🏆</h2>
+    <h2 id="winner"></h2>
+    <div class="scores">
+      <div class="score">
+        <b id="finalName1"></b>
+        <div id="final1"></div>
+      </div>
+      <div class="score">
+        <b id="finalName2"></b>
+        <div id="final2"></div>
+      </div>
     </div>
+    <p id="resultStatus" class="status"></p>
+    <button id="again" class="hidden">Play Again</button>
+    <button class="leave secondary">Leave Game</button>
+  </section>
 
-
-    <!-- RESULTS -->
-    <div id="resultsScreen" class="hidden">
-
-        <h2>🏆 Game Over! 🏆</h2>
-
-        <div id="winnerText" class="question"></div>
-
-        <div class="scoreboard">
-
-            <div class="score">
-                <strong id="finalName1">
-                    Player 1
-                </strong>
-
-                <div id="finalScore1">
-                    0
-                </div>
-            </div>
-
-            <div class="score">
-                <strong id="finalName2">
-                    Player 2
-                </strong>
-
-                <div id="finalScore2">
-                    0
-                </div>
-            </div>
-
-        </div>
-
-        <button onclick="location.reload()">
-            Play Again
-        </button>
-
-    </div>
-
-</div>
-
+  <p id="error" class="status" role="alert"></p>
+</main>
 
 <script>
+"use strict";
+
+const $ = id => document.getElementById(id);
 
 const questions = [
-
-    {
-        question: "What is the capital of Haiti?",
-        answers: [
-            "Port-au-Prince",
-            "Cap-Haïtien",
-            "Jacmel",
-            "Gonaïves"
-        ],
-        correct: 0
-    },
-
-    {
-        question: "What year did Haiti declare independence?",
-        answers: [
-            "1776",
-            "1804",
-            "1812",
-            "1865"
-        ],
-        correct: 1
-    },
-
-    {
-        question: "Who became the first emperor of Haiti?",
-        answers: [
-            "Toussaint Louverture",
-            "Jean-Jacques Dessalines",
-            "Henri Christophe",
-            "Alexandre Pétion"
-        ],
-        correct: 1
-    },
-
-    {
-        question: "What is one of Haiti's official languages?",
-        answers: [
-            "Portuguese",
-            "Haitian Creole",
-            "Italian",
-            "German"
-        ],
-        correct: 1
-    },
-
-    {
-        question: "Which Haitian city is famous for its historic Citadelle?",
-        answers: [
-            "Cap-Haïtien",
-            "Port-au-Prince",
-            "Les Cayes",
-            "Jacmel"
-        ],
-        correct: 0
-    },
-
-    {
-        question: "What is the name of Haiti's national flag colors?",
-        answers: [
-            "Blue and red",
-            "Green and yellow",
-            "Black and white",
-            "Orange and purple"
-        ],
-        correct: 0
-    },
-
-    {
-        question: "Haiti shares the island of Hispaniola with which country?",
-        answers: [
-            "Cuba",
-            "Jamaica",
-            "Dominican Republic",
-            "Bahamas"
-        ],
-        correct: 2
-    },
-
-    {
-        question: "What is Haiti's national flower?",
-        answers: [
-            "Rose",
-            "Hibiscus",
-            "Yellow trumpet flower",
-            "Sunflower"
-        ],
-        correct: 2
-    },
-
-    {
-        question: "Which Haitian city is known for its carnival?",
-        answers: [
-            "Cap-Haïtien",
-            "Miami",
-            "Boston",
-            "Chicago"
-        ],
-        correct: 0
-    },
-
-    {
-        question: "What is Haitian Creole commonly called?",
-        answers: [
-            "Kreyòl",
-            "Español",
-            "Português",
-            "Français"
-        ],
-        correct: 0
-    }
-
+  {
+    q: "What is the capital of Haiti?",
+    a: ["Port-au-Prince", "Cap-Haïtien", "Jacmel", "Gonaïves"],
+    c: 0
+  },
+  {
+    q: "What year did Haiti declare independence?",
+    a: ["1492", "1804", "1844", "1900"],
+    c: 1
+  },
+  {
+    q: "What languages are official in Haiti?",
+    a: [
+      "English and Spanish",
+      "French only",
+      "Haitian Creole and French",
+      "Spanish and French"
+    ],
+    c: 2
+  },
+  {
+    q: "What is Haiti's currency?",
+    a: ["Dollar", "Gourde", "Peso", "Euro"],
+    c: 1
+  },
+  {
+    q: "Which island does Haiti share with the Dominican Republic?",
+    a: ["Cuba", "Jamaica", "Hispaniola", "Puerto Rico"],
+    c: 2
+  },
+  {
+    q: "Who was a leader of the Haitian Revolution?",
+    a: [
+      "Toussaint Louverture",
+      "George Washington",
+      "Simón Bolívar",
+      "Napoleon III"
+    ],
+    c: 0
+  },
+  {
+    q: "What is the famous Haitian fortress called?",
+    a: [
+      "Fort Knox",
+      "Citadelle Laferrière",
+      "Fort Sumter",
+      "El Morro"
+    ],
+    c: 1
+  },
+  {
+    q: "Which sea borders Haiti to the south?",
+    a: ["Red Sea", "Baltic Sea", "Caribbean Sea", "Black Sea"],
+    c: 2
+  },
+  {
+    q: "Which city is known for its historic northern port?",
+    a: ["Cap-Haïtien", "Miami", "Kingston", "Santo Domingo"],
+    c: 0
+  },
+  {
+    q: "On what date is Haitian Independence Day?",
+    a: ["July 4", "January 1", "May 18", "December 25"],
+    c: 1
+  }
 ];
 
-
 let peer = null;
-let connection = null;
-let isHost = false;
-
+let conn = null;
+let host = false;
 let myName = "";
 let otherName = "";
+let room = "";
+let index = 0;
+let scores = [0, 0];
+let answered = [false, false];
+let selections = [null, null];
+let phase = "home";
+let round = 0;
+let advancing = false;
+let advanceTimer = null;
+let connectionReady = false;
 
-let currentQuestion = 0;
+function show(id) {
+  ["home", "lobby", "game", "results"].forEach(section => {
+    $(section).classList.toggle("hidden", section !== id);
+  });
+  phase = id;
+}
 
-let scores = {
-    host: 0,
-    guest: 0
+function error(message) {
+  $("error").textContent = message;
+}
+
+function clearError() {
+  error("");
+}
+
+function send(message) {
+  if (conn && conn.open) {
+    conn.send(message);
+    return true;
+  }
+  return false;
+}
+
+function closeAll() {
+  if (advanceTimer) {
+    clearTimeout(advanceTimer);
+    advanceTimer = null;
+  }
+
+  connectionReady = false;
+
+  if (conn) {
+    try { conn.close(); } catch (e) {}
+    conn = null;
+  }
+
+  if (peer) {
+    try { peer.destroy(); } catch (e) {}
+    peer = null;
+  }
+}
+
+function leave() {
+  closeAll();
+  host = false;
+  room = "";
+  otherName = "";
+  index = 0;
+  scores = [0, 0];
+  clearError();
+  show("home");
+}
+
+function makeCode() {
+  return "HT" + Math.floor(1000 + Math.random() * 9000);
+}
+
+function updateLobby() {
+  $("roomCode").textContent = room;
+
+  $("p1").textContent =
+    "1. " + (host ? myName : otherName || "Player 1");
+
+  $("p2").textContent =
+    "2. " + (host ? otherName || "Waiting for Player 2" : myName);
+
+  const connected = !!(
+    conn &&
+    conn.open &&
+    otherName &&
+    connectionReady
+  );
+
+  $("start").classList.toggle("hidden", !host || !connected);
+
+  $("lobbyStatus").textContent = connected
+    ? host
+      ? "Player 2 connected! Ready to start."
+      : "Connected! Waiting for Player 1 to start."
+    : "Waiting for connection...";
+}
+
+function bindConnection(connection) {
+  conn = connection;
+
+  connection.on("open", () => {
+    if (conn !== connection) return;
+
+    connectionReady = true;
+
+    if (!host) {
+      send({ type: "join", name: myName });
+    }
+
+    updateLobby();
+  });
+
+  connection.on("data", message => {
+    if (conn !== connection) return;
+
+    if (message && typeof message === "object") {
+      receive(message);
+    }
+  });
+
+  connection.on("close", () => {
+    if (conn !== connection) return;
+
+    connectionReady = false;
+
+    error("Player disconnected. Create a new room.");
+    $("start").classList.add("hidden");
+    $("again").classList.add("hidden");
+  });
+
+  connection.on("error", () => {
+    if (conn !== connection) return;
+
+    connectionReady = false;
+    error("Connection problem. Create a new room.");
+  });
+}
+
+function create() {
+  clearError();
+
+  myName = $("name").value.trim();
+
+  if (!myName) {
+    return error("Please enter your name first.");
+  }
+
+  if (typeof Peer === "undefined") {
+    return error("Multiplayer service did not load.");
+  }
+
+  closeAll();
+
+  host = true;
+  otherName = "";
+  room = makeCode();
+
+  show("lobby");
+  updateLobby();
+
+  peer = new Peer("haiti-trivia-" + room.toLowerCase());
+
+  peer.on("open", () => {
+    $("lobbyStatus").textContent = "Waiting for Player 2...";
+  });
+
+  peer.on("connection", connection => {
+    if (conn && conn.open) {
+      connection.on("open", () => connection.close());
+      return;
+    }
+
+    bindConnection(connection);
+  });
+
+  peer.on("error", e => {
+    error(
+      e.type === "unavailable-id"
+        ? "Room code already exists. Create another room."
+        : "Connection failed. Try creating another room."
+    );
+  });
+}
+
+function join() {
+  clearError();
+
+  myName = $("name").value.trim();
+
+  if (!myName) {
+    return error("Please enter your name first.");
+  }
+
+  if (typeof Peer === "undefined") {
+    return error("Multiplayer service did not load.");
+  }
+
+  const value = prompt("Enter the room code:");
+
+  if (value === null) return;
+
+  const code = value.trim().toUpperCase();
+
+  if (!/^HT[0-9]{4}$/.test(code)) {
+    return error("Enter a code such as HT1234.");
+  }
+
+  closeAll();
+
+  host = false;
+  otherName = "";
+  room = code;
+
+  show("lobby");
+  updateLobby();
+
+  peer = new Peer();
+
+  peer.on("open", () => {
+    const connection = peer.connect(
+      "haiti-trivia-" + room.toLowerCase(),
+      { reliable: true }
+    );
+
+    bindConnection(connection);
+  });
+
+  peer.on("error", () => {
+    error("Unable to connect. Check the room code.");
+  });
+}
+
+function receive(message) {
+  switch (message.type) {
+    case "join":
+      if (!host || phase !== "lobby") return;
+
+      otherName = String(message.name || "Player 2").slice(0, 24);
+
+      send({
+        type: "welcome",
+        name: myName
+      });
+
+      updateLobby();
+      break;
+
+    case "welcome":
+      if (host) return;
+
+      otherName = String(message.name || "Player 1").slice(0, 24);
+      updateLobby();
+      break;
+
+    case "start":
+      if (host) return;
+
+      begin(false, message.round);
+      break;
+
+    case "answer":
+      if (!host || phase !== "game") return;
+      if (message.round !== round || message.index !== index) return;
+
+      acceptAnswer(1, message.choice);
+      break;
+
+    case "state":
+      if (host || phase !== "game") return;
+      if (message.round !== round || message.index !== index) return;
+
+      scores = [...message.scores];
+
+      renderScores();
+
+      if (message.answered[0] && message.answered[1]) {
+        $("feedback").textContent = "Both players answered!";
+      } else if (message.answered[1]) {
+        $("feedback").textContent = "Waiting for Player 1...";
+      }
+      break;
+
+    case "next":
+      if (host || phase !== "game") return;
+      if (message.round !== round) return;
+
+      index = message.index;
+      answered = [false, false];
+      selections = [null, null];
+
+      renderQuestion();
+      break;
+
+    case "finish":
+      if (host || phase !== "game") return;
+
+      scores = [...message.scores];
+      renderResults();
+      break;
+
+    case "restart":
+      if (host) return;
+
+      begin(false, message.round);
+      break;
+  }
+}
+
+function begin(isHost, incomingRound) {
+  if (isHost && (!conn || !conn.open || !otherName)) {
+    return error("Wait for Player 2 to connect.");
+  }
+
+  if (advanceTimer) {
+    clearTimeout(advanceTimer);
+    advanceTimer = null;
+  }
+
+  if (isHost) {
+    round++;
+  } else {
+    round = incomingRound;
+  }
+
+  index = 0;
+  scores = [0, 0];
+  answered = [false, false];
+  selections = [null, null];
+  advancing = false;
+
+  clearError();
+  show("game");
+  renderQuestion();
+
+  if (isHost) {
+    send({ type: "start", round });
+  }
+}
+
+function renderScores() {
+  $("scoreName1").textContent = host ? myName : otherName;
+  $("scoreName2").textContent = host ? otherName : myName;
+
+  $("score1").textContent = scores[0];
+  $("score2").textContent = scores[1];
+}
+
+function renderQuestion() {
+  renderScores();
+
+  $("progress").textContent =
+    "Question " + (index + 1) + " of " + questions.length;
+
+  $("question").textContent = questions[index].q;
+
+  $("answers").replaceChildren();
+  $("feedback").textContent = "";
+
+  questions[index].a.forEach((answer, i) => {
+    const button = document.createElement("button");
+
+    button.className = "answer";
+    button.textContent = answer;
+    button.onclick = () => choose(i);
+
+    $("answers").appendChild(button);
+  });
+}
+
+function choose(choice) {
+  if (phase !== "game") return;
+
+  const player = host ? 0 : 1;
+
+  if (answered[player]) return;
+
+  if (
+    !Number.isInteger(choice) ||
+    choice < 0 ||
+    choice >= questions[index].a.length
+  ) return;
+
+  answered[player] = true;
+  selections[player] = choice;
+
+  document.querySelectorAll(".answer").forEach((button, i) => {
+    button.disabled = true;
+
+    if (i === choice) {
+      button.classList.add("selected");
+    }
+  });
+
+  if (host) {
+    acceptAnswer(0, choice);
+  } else {
+    const sent = send({
+      type: "answer",
+      round,
+      index,
+      choice
+    });
+
+    $("feedback").textContent = sent
+      ? "Answer sent. Waiting for Player 1..."
+      : "Connection lost. Your answer was not sent.";
+  }
+}
+
+function acceptAnswer(player, choice) {
+  if (!host || phase !== "game") return;
+
+  if (
+    !Number.isInteger(choice) ||
+    choice < 0 ||
+    choice >= questions[index].a.length
+  ) return;
+
+  if (player === 1) {
+    if (answered[1]) return;
+
+    answered[1] = true;
+    selections[1] = choice;
+  } else {
+    if (!answered[0]) return;
+  }
+
+  if (choice === questions[index].c) {
+    scores[player]++;
+  }
+
+  renderScores();
+
+  send({
+    type: "state",
+    round,
+    index,
+    scores: [...scores],
+    answered: [...answered],
+    selections: [...selections]
+  });
+
+  if (answered[0] && answered[1] && !advancing) {
+    advancing = true;
+
+    $("feedback").textContent = "Both players answered!";
+
+    advanceTimer = setTimeout(() => {
+      advanceTimer = null;
+
+      if (phase !== "game") return;
+
+      index++;
+      advancing = false;
+
+      if (index >= questions.length) {
+        send({
+          type: "finish",
+          scores: [...scores]
+        });
+
+        renderResults();
+      } else {
+        answered = [false, false];
+        selections = [null, null];
+
+        send({
+          type: "next",
+          round,
+          index
+        });
+
+        renderQuestion();
+      }
+    }, 1200);
+  } else {
+    $("feedback").textContent = "Waiting for the other player...";
+  }
+}
+
+function renderResults() {
+  show("results");
+
+  const n1 = host ? myName : otherName;
+  const n2 = host ? otherName : myName;
+
+  $("finalName1").textContent = n1;
+  $("finalName2").textContent = n2;
+
+  $("final1").textContent = scores[0];
+  $("final2").textContent = scores[1];
+
+  $("winner").textContent =
+    scores[0] === scores[1]
+      ? "It's a tie!"
+      : (scores[0] > scores[1] ? n1 : n2) + " wins!";
+
+  $("again").classList.toggle("hidden", !host);
+
+  $("resultStatus").textContent = host
+    ? "Ready for another round?"
+    : "Waiting for Player 1 to play again.";
+}
+
+$("create").onclick = create;
+$("join").onclick = join;
+
+$("start").onclick = () => {
+  begin(true);
 };
 
-let answered = false;
+$("again").onclick = () => {
+  if (!host || !conn || !conn.open) {
+    return error(
+      "Other player disconnected. Create a new room."
+    );
+  }
 
+  round++;
 
-// ELEMENTS
+  send({
+    type: "restart",
+    round
+  });
 
-const homeScreen =
-    document.getElementById("homeScreen");
+  begin(false, round);
+};
 
-const roomScreen =
-    document.getElementById("roomScreen");
-
-const gameScreen =
-    document.getElementById("gameScreen");
-
-const resultsScreen =
-    document.getElementById("resultsScreen");
-
-const playerName =
-    document.getElementById("playerName");
-
-const roomCode =
-    document.getElementById("roomCode");
-
-const player1 =
-    document.getElementById("player1");
-
-const player2 =
-    document.getElementById("player2");
-
-const roomStatus =
-    document.getElementById("roomStatus");
-
-const startButton =
-    document.getElementById("startButton");
-
-const questionText =
-    document.getElementById("questionText");
-
-const answers =
-    document.getElementById("answers");
-
-const questionNumber =
-    document.getElementById("questionNumber");
-
-const answerStatus =
-    document.getElementById("answerStatus");
-
-const nextButton =
-    document.getElementById("nextButton");
-
-
-// CREATE GAME
-
-document.getElementById("createButton")
-.addEventListener("click", createGame);
-
-
-// JOIN GAME
-
-document.getElementById("joinButton")
-.addEventListener("click", joinGame);
-
-
-// LEAVE GAME
-
-document.getElementById("leaveButton")
-.addEventListener("click", function() {
-
-    if (connection) {
-        connection.close();
-    }
-
-    if (peer) {
-        peer.destroy();
-    }
-
-    location.reload();
-
+document.querySelectorAll(".leave").forEach(button => {
+  button.onclick = leave;
 });
 
-
-// START BUTTON
-
-startButton.addEventListener("click", function() {
-
-    if (!isHost) {
-        return;
-    }
-
-    currentQuestion = 0;
-
-    scores.host = 0;
-    scores.guest = 0;
-
-    sendMessage({
-        type: "start",
-        question: currentQuestion,
-        scores: scores
-    });
-
-    showGame();
-
-});
-
-
-// NEXT QUESTION
-
-nextButton.addEventListener("click", function() {
-
-    if (!isHost) {
-        return;
-    }
-
-    currentQuestion++;
-
-    if (currentQuestion >= questions.length) {
-
-        sendMessage({
-            type: "gameOver",
-            scores: scores
-        });
-
-        showResults();
-
-        return;
-    }
-
-    sendMessage({
-        type: "question",
-        question: currentQuestion,
-        scores: scores
-    });
-
-    showQuestion();
-
-});
-
-
-// CREATE GAME FUNCTION
-
-function createGame() {
-
-    myName =
-        playerName.value.trim();
-
-    if (!myName) {
-
-        alert(
-            "Please enter your name first."
-        );
-
-        return;
-    }
-
-    isHost = true;
-
-    const number =
-        Math.floor(
-            1000 +
-            Math.random() * 9000
-        );
-
-    const code =
-        "HT" + number;
-
-    const peerId =
-        "haiti-" + number;
-
-    peer =
-        new Peer(peerId);
-
-    peer.on("open", function() {
-
-        roomCode.textContent = code;
-
-        player1.textContent =
-            "1. " + myName;
-
-        player2.textContent =
-            "Waiting for Player 2...";
-
-        roomStatus.textContent =
-            "Waiting for Player 2...";
-
-        homeScreen.classList.add("hidden");
-
-        roomScreen.classList.remove("hidden");
-
-    });
-
-
-    peer.on("connection", function(conn) {
-
-        connection = conn;
-
-        setupConnection();
-
-    });
-
-
-    peer.on("error", function(error) {
-
-        console.log(error);
-
-        alert(
-            "There was a connection problem. Please create the game again."
-        );
-
-    });
-
-}
-
-
-// JOIN GAME FUNCTION
-
-function joinGame() {
-
-    myName =
-        playerName.value.trim();
-
-    if (!myName) {
-
-        alert(
-            "Please enter your name first."
-        );
-
-        return;
-    }
-
-    const code =
-        prompt(
-            "Enter the room code:"
-        );
-
-    if (!code) {
-        return;
-    }
-
-    const cleanCode =
-        code.trim().toUpperCase();
-
-    if (!/^HT\d{4}$/.test(cleanCode)) {
-
-        alert(
-            "Please enter a valid room code, such as HT1234."
-        );
-
-        return;
-    }
-
-    const number =
-        cleanCode.substring(2);
-
-    const hostPeerId =
-        "haiti-" + number;
-
-    isHost = false;
-
-    peer =
-        new Peer();
-
-    peer.on("open", function() {
-
-        connection =
-            peer.connect(hostPeerId, {
-                reliable: true
-            });
-
-        connection.on("open", function() {
-
-            homeScreen.classList.add("hidden");
-            roomScreen.classList.remove("hidden");
-
-            roomCode.textContent =
-                cleanCode;
-
-            player1.textContent =
-                "1. Player 1";
-
-            player2.textContent =
-                "2. " + myName;
-
-            roomStatus.textContent =
-                "Connected! Waiting for Player 1 to start the game.";
-
-            connection.send({
-                type: "join",
-                name: myName
-            });
-
-        });
-
-        connection.on("error", function(error) {
-
-            console.log(error);
-
-            alert(
-                "Could not connect to that game room. Make sure Player 1 is still in the room."
-            );
-
-        });
-
-        connection.on("close", function() {
-
-            roomStatus.textContent =
-                "Player 1 disconnected.";
-
-        });
-
-    });
-
-    peer.on("error", function(error) {
-
-        console.log(error);
-
-        alert(
-            "Could not find that game room. Check the code and try again."
-        );
-
-    });
-
-}
-
-
-// CONNECTION SETUP
-
-function setupConnection() {
-
-    connection.on("open", function() {
-
-        sendMessage({
-            type: "join",
-            name: myName
-        });
-
-    });
-
-
-    connection.on("data", function(message) {
-
-        handleMessage(message);
-
-    });
-
-
-    connection.on("close", function() {
-
-        roomStatus.textContent =
-            "Player disconnected.";
-
-    });
-
-}
-
-
-// SEND MESSAGE
-
-function sendMessage(message) {
-
-    if (
-        connection &&
-        connection.open
-    ) {
-
-        connection.send(message);
-
-    }
-
-}
-
-
-// HANDLE MESSAGE
-
-function handleMessage(message) {
-
-    if (message.type === "join") {
-
-        if (isHost) {
-
-            otherName =
-                message.name;
-
-            player2.textContent =
-                "2. " + otherName;
-
-            roomStatus.textContent =
-                "Player 2 connected!";
-
-            startButton.classList.remove(
-                "hidden"
-            );
-
-        }
-
-        return;
-    }
-
-
-    if (message.type === "start") {
-
-        currentQuestion =
-            message.question;
-
-        scores =
-            message.scores;
-
-        showGame();
-
-        return;
-    }
-
-
-    if (message.type === "question") {
-
-        currentQuestion =
-            message.question;
-
-        scores =
-            message.scores;
-
-        showQuestion();
-
-        return;
-    }
-
-
-    if (message.type === "answer") {
-
-        if (!isHost) {
-            return;
-        }
-
-        if (message.player === "guest") {
-
-            if (
-                message.correct === true
-            ) {
-
-                scores.guest++;
-
-            }
-
-        }
-
-        sendMessage({
-
-            type: "scores",
-
-            scores: scores,
-
-            question: currentQuestion
-
-        });
-
-        return;
-    }
-
-
-    if (message.type === "scores") {
-
-        scores =
-            message.scores;
-
-        updateScores();
-
-        return;
-    }
-
-
-    if (message.type === "gameOver") {
-
-        scores =
-            message.scores;
-
-        showResults();
-
-        return;
-    }
-
-}
-
-
-// SHOW GAME
-
-function showGame() {
-
-    roomScreen.classList.add(
-        "hidden"
-    );
-
-    resultsScreen.classList.add(
-        "hidden"
-    );
-
-    gameScreen.classList.remove(
-        "hidden"
-    );
-
-    updateScores();
-
-    showQuestion();
-
-}
-
-
-// SHOW QUESTION
-
-function showQuestion() {
-
-    if (
-        currentQuestion >=
-        questions.length
-    ) {
-
-        showResults();
-
-        return;
-    }
-
-    answered = false;
-
-    nextButton.classList.add(
-        "hidden"
-    );
-
-    answerStatus.textContent = "";
-
-    const q =
-        questions[currentQuestion];
-
-    questionNumber.textContent =
-        "Question " +
-        (currentQuestion + 1) +
-        " of " +
-        questions.length;
-
-    questionText.textContent =
-        q.question;
-
-    answers.innerHTML = "";
-
-
-    q.answers.forEach(
-        function(answer, index) {
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-            button.textContent =
-                answer;
-
-            button.className =
-                "answer";
-
-            button.addEventListener(
-                "click",
-                function() {
-
-                    chooseAnswer(
-                        index,
-                        button
-                    );
-
-                }
-            );
-
-            answers.appendChild(
-                button
-            );
-
-        }
-    );
-
-}
-
-
-// CHOOSE ANSWER
-
-function chooseAnswer(
-    index,
-    button
-) {
-
-    if (answered) {
-        return;
-    }
-
-    answered = true;
-
-    const q =
-        questions[currentQuestion];
-
-    const correct =
-        index === q.correct;
-
-
-    if (correct) {
-
-        button.classList.add(
-            "correct"
-        );
-
-        answerStatus.textContent =
-            "✅ Correct!";
-
-    } else {
-
-        button.classList.add(
-            "wrong"
-        );
-
-        answerStatus.textContent =
-            "❌ Incorrect!";
-
-    }
-
-
-    document
-        .querySelectorAll(".answer")
-        .forEach(function(btn) {
-
-            btn.disabled = true;
-
-        });
-
-
-    if (isHost) {
-
-        if (correct) {
-
-            scores.host++;
-
-        }
-
-        updateScores();
-
-
-        sendMessage({
-
-            type: "scores",
-
-            scores: scores,
-
-            question: currentQuestion
-
-        });
-
-
-        nextButton.classList.remove(
-            "hidden"
-        );
-
-    } else {
-
-        sendMessage({
-
-            type: "answer",
-
-            player: "guest",
-
-            correct: correct
-
-        });
-
-    }
-
-}
-
-
-// UPDATE SCORES
-
-function updateScores() {
-
-    document.getElementById(
-        "score1"
-    ).textContent =
-        scores.host;
-
-    document.getElementById(
-        "score2"
-    ).textContent =
-        scores.guest;
-
-    document.getElementById(
-        "scoreName1"
-    ).textContent =
-        isHost
-            ? myName
-            : otherName;
-
-    document.getElementById(
-        "scoreName2"
-    ).textContent =
-        isHost
-            ? otherName
-            : myName;
-
-}
-
-
-// SHOW RESULTS
-
-function showResults() {
-
-    gameScreen.classList.add(
-        "hidden"
-    );
-
-    resultsScreen.classList.remove(
-        "hidden"
-    );
-
-
-    document.getElementById(
-        "finalScore1"
-    ).textContent =
-        scores.host;
-
-    document.getElementById(
-        "finalScore2"
-    ).textContent =
-        scores.guest;
-
-
-    document.getElementById(
-        "finalName1"
-    ).textContent =
-        isHost
-            ? myName
-            : otherName;
-
-    document.getElementById(
-        "finalName2"
-    ).textContent =
-        isHost
-            ? otherName
-            : myName;
-
-
-    let winner = "";
-
-    if (
-        scores.host >
-        scores.guest
-    ) {
-
-        winner =
-            "🏆 " +
-            (
-                isHost
-                    ? myName
-                    : otherName
-            ) +
-            " wins!";
-
-    } else if (
-        scores.guest >
-        scores.host
-    ) {
-
-        winner =
-            "🏆 " +
-            (
-                isHost
-                    ? otherName
-                    : myName
-            ) +
-            " wins!";
-
-    } else {
-
-        winner =
-            "🤝 It's a tie!";
-
-    }
-
-
-    document.getElementById(
-        "winnerText"
-    ).textContent =
-        winner;
-
-}
-
+window.addEventListener("beforeunload", closeAll);
 </script>
-
 </body>
 </html>
-
-
-
-   
