@@ -224,6 +224,9 @@ let round = 0;
 let advancing = false;
 let advanceTimer = null;
 let connectionReady = false;
+let reconnectTimer = null;
+let reconnecting = false;
+let lastPeerId = "";
 
 function show(id) {
   ["home", "lobby", "game", "results"].forEach(section => {
@@ -255,6 +258,11 @@ function closeAll() {
   }
 
   connectionReady = false;
+  reconnecting = false;
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
 
   if (conn) {
     try { conn.close(); } catch (e) {}
@@ -314,12 +322,17 @@ function bindConnection(connection) {
     if (conn !== connection) return;
 
     connectionReady = true;
-
+    reconnecting = false;
+    clearError();
     if (!host) {
       send({ type: "join", name: myName });
     }
-
-    updateLobby();
+    if (phase === "lobby") updateLobby();
+    if (phase === "game" || phase === "results") {
+      $("feedback").textContent = "Connected.";
+      $("resultStatus").textContent = host
+        ? "Ready for another round?" : "Waiting for Player 1 to play again.";
+    }
   });
 
   connection.on("data", message => {
@@ -332,19 +345,45 @@ function bindConnection(connection) {
 
   connection.on("close", () => {
     if (conn !== connection) return;
-
     connectionReady = false;
-
-    error("Player disconnected. Create a new room.");
-    $("start").classList.add("hidden");
-    $("again").classList.add("hidden");
+    error(host
+      ? "Player 2 disconnected. Waiting for them to reconnect..."
+      : "Disconnected. Trying to reconnect...");
+    if (phase === "lobby") updateLobby();
+    if (!host) scheduleReconnect();
   });
 
   connection.on("error", () => {
     if (conn !== connection) return;
-
     connectionReady = false;
-    error("Connection problem. Create a new room.");
+    error("Connection interrupted. Trying to reconnect...");
+    if (!host) scheduleReconnect();
+  });
+}
+
+function scheduleReconnect() {
+  if (host || reconnectTimer || !peer || peer.destroyed || !room) return;
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    if (host || !peer || peer.destroyed || !room || (conn && conn.open)) return;
+    reconnecting = true;
+    const replacement = peer.connect("haiti-trivia-" + room.toLowerCase(),
+      { reliable: true });
+    bindConnection(replacement);
+    // Retry if the host is still temporarily unreachable.
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+      if (!host && !(conn && conn.open)) scheduleReconnect();
+    }, 3500);
+  }, 1200);
+}
+
+function sendSnapshot() {
+  if (!host || !conn || !conn.open) return;
+  send({
+    type: "snapshot", phase, round, index,
+    scores: [...scores], answered: [...answered],
+    name: myName, otherName
   });
 }
 
@@ -381,7 +420,9 @@ function create() {
       connection.on("open", () => connection.close());
       return;
     }
-
+    if (conn) {
+      try { conn.close(); } catch (e) {}
+    }
     bindConnection(connection);
   });
 
@@ -445,16 +486,11 @@ function join() {
 function receive(message) {
   switch (message.type) {
     case "join":
-      if (!host || phase !== "lobby") return;
-
+      if (!host) return;
       otherName = String(message.name || "Player 2").slice(0, 24);
-
-      send({
-        type: "welcome",
-        name: myName
-      });
-
-      updateLobby();
+      send({ type: "welcome", name: myName });
+      if (phase === "lobby") updateLobby();
+      else sendSnapshot();
       break;
 
     case "welcome":
@@ -462,6 +498,28 @@ function receive(message) {
 
       otherName = String(message.name || "Player 1").slice(0, 24);
       updateLobby();
+      break;
+
+    case "snapshot":
+      if (host) return;
+      otherName = String(message.name || "Player 1").slice(0, 24);
+      round = message.round;
+      index = message.index;
+      scores = [...message.scores];
+      answered = [...message.answered];
+      if (message.phase === "results") {
+        renderResults();
+      } else if (message.phase === "game") {
+        show("game");
+        renderQuestion();
+        if (answered[1]) {
+          document.querySelectorAll(".answer").forEach(b => b.disabled = true);
+          $("feedback").textContent = "Answer received. Waiting for Player 1...";
+        }
+      } else {
+        show("lobby");
+        updateLobby();
+      }
       break;
 
     case "start":
@@ -504,8 +562,7 @@ function receive(message) {
       break;
 
     case "finish":
-      if (host || phase !== "game") return;
-
+      if (host || message.round !== round) return;
       scores = [...message.scores];
       renderResults();
       break;
@@ -585,6 +642,9 @@ function choose(choice) {
   const player = host ? 0 : 1;
 
   if (answered[player]) return;
+  if (!host && (!conn || !conn.open)) {
+    return error("Connection lost. Please wait for reconnection.");
+  }
 
   if (
     !Number.isInteger(choice) ||
@@ -668,6 +728,7 @@ function acceptAnswer(player, choice) {
       if (index >= questions.length) {
         send({
           type: "finish",
+          round,
           scores: [...scores]
         });
 
@@ -728,14 +789,11 @@ $("again").onclick = () => {
     );
   }
 
-  round++;
-
-  send({
-    type: "restart",
-    round
-  });
-
-  begin(false, round);
+  const nextRound = round + 1;
+  if (!send({ type: "restart", round: nextRound })) {
+    return error("Player 2 disconnected. Wait for them to reconnect.");
+  }
+  begin(false, nextRound);
 };
 
 document.querySelectorAll(".leave").forEach(button => {
