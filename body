@@ -89,6 +89,10 @@ input {
   <h1>🇭🇹 Haiti Trivia Battle 🇭🇹</h1>
   <p>Learn • Compete • Represent Haiti</p>
 
+<div class="timer-box">
+  ⏱️ Time: <span id="time">30</span>s
+</div>
+
   <section id="home">
     <h2>Enter Your Name</h2>
     <input id="name" placeholder="Player Name" maxlength="24">
