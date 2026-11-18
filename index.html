@@ -633,6 +633,24 @@ function renderScores() {
 function renderQuestion() {
   renderScores();
 
+  clearInterval(window.questionCountdown);
+  let secondsLeft = 30;
+  $("time").textContent = secondsLeft;
+
+  window.questionCountdown = setInterval(() => {
+    if (phase !== "game") {
+      clearInterval(window.questionCountdown);
+      return;
+    }
+
+    secondsLeft--;
+    $("time").textContent = Math.max(0, secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(window.questionCountdown);
+    }
+  }, 1000);
+
   $("progress").textContent =
     "Question " + (index + 1) + " of " + questions.length;
 
