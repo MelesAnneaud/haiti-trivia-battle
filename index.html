@@ -157,7 +157,7 @@ input {
 
 const $ = id => document.getElementById(id);
 
-const questions = [
+const levelOneQuestions = [
   {
     q: "What is the capital of Haiti?",
     a: ["Port-au-Prince", "Cap-Haïtien", "Jacmel", "Gonaïves"],
@@ -225,6 +225,33 @@ const questions = [
   }
 ];
 
+const levelTwoQuestions = [
+  {q:"Who proclaimed Haiti's independence in 1804?",a:["Toussaint Louverture","Jean-Jacques Dessalines","Henri Christophe","Alexandre Petion"],c:1},
+  {q:"On what date did Haiti declare independence?",a:["May 18, 1803","August 22, 1791","January 1, 1804","January 1, 1805"],c:2},
+  {q:"Which country did Haiti defeat to win independence?",a:["Spain","Britain","Portugal","France"],c:3},
+  {q:"What was colonial Haiti called under French rule?",a:["New France","Saint-Domingue","New Haiti","Louisiana"],c:1},
+  {q:"What major battle took place in November 1803?",a:["Battle of Vertieres","Battle of Waterloo","Battle of Yorktown","Battle of New Orleans"],c:0},
+  {q:"Who was the French emperor during Haiti's independence?",a:["Louis XIV","Napoleon Bonaparte","Charles X","Louis XVI"],c:1},
+  {q:"Where was Haitian independence proclaimed?",a:["Jacmel","Les Cayes","Gonaives","Cap-Haitien"],c:2},
+  {q:"Who became Haiti's first emperor?",a:["Henri Christophe","Alexandre Petion","Toussaint Louverture","Jean-Jacques Dessalines"],c:3},
+  {q:"What year did the Haitian Revolution begin?",a:["1789","1791","1804","1815"],c:1},
+  {q:"Which country became the first independent Black republic in 1804?",a:["Haiti","Brazil","Cuba","Jamaica"],c:0}
+];
+
+const levelThreeQuestions = [
+  {q:"Which musical style originated in Haiti?",a:["Salsa","Kompa","Flamenco","Reggae"],c:1},
+  {q:"What is Haiti's traditional pumpkin soup called?",a:["Soup joumou","Bouillon","Calalou","Sancocho"],c:0},
+  {q:"Who popularized modern Haitian konpa music?",a:["Bob Marley","Nemours Jean-Baptiste","Wyclef Jean","Toto Bissainthe"],c:1},
+  {q:"What is griot in Haitian cuisine?",a:["Fried pork","Rice pudding","Fish soup","Sweet bread"],c:0},
+  {q:"What is Haiti's national flower?",a:["Rose","Hibiscus","Daisy","Tulip"],c:1},
+  {q:"What is rara associated with in Haiti?",a:["Traditional street music and processions","Winter skiing","Surfing","Classical ballet"],c:0},
+  {q:"What is a tanbou?",a:["A flute","A drum","A string instrument","A dance costume"],c:1},
+  {q:"Which Haitian-American musician helped form the Fugees?",a:["Wyclef Jean","Drake","Nas","Pitbull"],c:0},
+  {q:"What is diri kole?",a:["Rice with beans","Fried plantains","Pumpkin soup","Cassava bread"],c:0},
+  {q:"What is the Haitian Creole word for thank you?",a:["Bonjou","Mesi","Bonswa","Orevwa"],c:1}
+]; 
+  
+let questions = levelOneQuestions;
 let peer = null;
 let conn = null;
 let host = false;
@@ -249,8 +276,8 @@ function show(id) {
     $(section).classList.toggle("hidden", section !== id);
   });
   phase = id;
-}
-
+document.querySelector(".timer-box").style.display = id === "game" ? "inline-block" : "none";
+ } 
 function error(message) {
   $("error").textContent = message;
 }
@@ -519,8 +546,15 @@ function receive(message) {
     case "snapshot":
       if (host) return;
       otherName = String(message.name || "Player 1").slice(0, 24);
-      round = message.round;
-      index = message.index;
+      round = message.round; 
+      questions = round === 1
+  ? levelOneQuestions
+  : round === 2
+    ? levelTwoQuestions
+    : levelThreeQuestions;
+index = message.index;  
+            
+
       scores = [...message.scores];
       answered = [...message.answered];
       if (message.phase === "results") {
@@ -606,7 +640,11 @@ function begin(isHost, incomingRound) {
   } else {
     round = incomingRound;
   }
-
+  questions = round === 1
+  ? levelOneQuestions
+  : round === 2
+    ? levelTwoQuestions
+    : levelThreeQuestions;
   index = 0;
   scores = [0, 0];
   answered = [false, false];
