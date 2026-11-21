@@ -260,6 +260,7 @@ let otherName = "";
 let room = "";
 let index = 0;
 let scores = [0, 0];
+let tournamentScores = [0, 0];  
 let answered = [false, false];
 let selections = [null, null];
 let phase = "home";
@@ -325,6 +326,7 @@ function leave() {
   otherName = "";
   index = 0;
   scores = [0, 0];
+  tournamentScores = [0, 0];
   clearError();
   show("home");
 }
@@ -608,12 +610,14 @@ index = message.index;
       answered = [false, false];
       selections = [null, null];
 
+
       renderQuestion();
       break;
 
     case "finish":
       if (host || message.round !== round) return;
       scores = [...message.scores];
+      tournamentScores = [...message.tournamentScores];
       renderResults();
       break;
 
@@ -636,10 +640,11 @@ function begin(isHost, incomingRound) {
   }
 
   if (isHost) {
-    round++;
+    round = round >= 3 ? 1 : round + 1;
   } else {
     round = incomingRound;
   }
+  if (round === 1) tournamentScores = [0, 0];
   questions = round === 1
   ? levelOneQuestions
   : round === 2
@@ -812,10 +817,12 @@ function acceptAnswer(player, choice) {
       advancing = false;
 
       if (index >= questions.length) {
+        tournamentScores = tournamentScores.map((total, i) => total + scores[i]);
         send({
           type: "finish",
           round,
-          scores: [...scores]
+          scores: [...scores],
+tournamentScores: [...tournamentScores]
         });
 
         renderResults();
@@ -846,16 +853,22 @@ function renderResults() {
   $("finalName1").textContent = n1;
   $("finalName2").textContent = n2;
 
-  $("final1").textContent = scores[0];
-  $("final2").textContent = scores[1];
+ const finalScores = round === 3 ? tournamentScores : scores;
 
-  $("winner").textContent =
-    scores[0] === scores[1]
-      ? "It's a tie!"
-      : (scores[0] > scores[1] ? n1 : n2) + " wins!";
+$("final1").textContent = finalScores[0];
+$("final2").textContent = finalScores[1];
 
+document.querySelector("#results h2").textContent =
+  round === 3 ? "🏆 Tournament Complete! 🏆"
+              : "🏆 Level " + round + " Complete! 🏆";
+
+$("winner").textContent =
+  finalScores[0] === finalScores[1]
+    ? "It's a tie!"
+    : (finalScores[0] > finalScores[1] ? n1 : n2) +
+      (round === 3 ? " is the CHAMPION!" : " wins!");
   $("again").classList.toggle("hidden", !host);
-
+$("again").textContent = round === 3 ? "New Tournament" : "Play Again";
   $("resultStatus").textContent = host
     ? "Ready for another round?"
     : "Waiting for Player 1 to play again.";
@@ -875,7 +888,7 @@ $("again").onclick = () => {
     );
   }
 
-  const nextRound = round + 1;
+  const nextRound = round >= 3 ? 1 : round + 1;
   if (!send({ type: "restart", round: nextRound })) {
     return error("Player 2 disconnected. Wait for them to reconnect.");
   }
