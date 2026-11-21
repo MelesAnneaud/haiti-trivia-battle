@@ -670,7 +670,12 @@ function renderScores() {
 
 function renderQuestion() {
   renderScores();
-
+$("progress").textContent =
+  "Level " + Math.min(round, 3) + " — " +
+  (round === 1 ? "Haiti Basics" :
+   round === 2 ? "Haitian History" :
+   "Haitian Culture & Music") +
+  " | Question " + (index + 1) + " of " + questions.length;
   clearInterval(window.questionCountdown);
   let secondsLeft = 30;
   $("time").textContent = secondsLeft;
@@ -699,8 +704,7 @@ if (secondsLeft <= 0) {
 }, 1000);
 
 
-  $("progress").textContent =
-    "Question " + (index + 1) + " of " + questions.length;
+  
 
   $("question").textContent = questions[index].q;
 
